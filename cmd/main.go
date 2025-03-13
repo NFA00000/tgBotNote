@@ -1,20 +1,38 @@
 package main
 
 import (
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"log"
+	"os"
 	"tgBotNote/internal/bot"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/joho/godotenv"
 )
 
 func main() {
 
+	// Инициализируем базу данных
 	bot.InitDB()
 
-	botAPI, err := tgbotapi.NewBotAPI("7944124426:AAF5QWjCA6jq8BzH6SSpU-52nxO1f0q7KKc")
+	// Загружаем переменные окружения
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Ошибка загрузки .env файла")
+	}
+
+	// Получаем токен
+	botToken := os.Getenv("BOT_TOKEN")
+	if botToken == "" {
+		log.Fatal("Токен бота не найден в .env файле")
+	}
+
+	// Инициализируем бота
+	botAPI, err := tgbotapi.NewBotAPI(botToken)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// test
 	botAPI.Debug = true
 	log.Println("Едем")
 
@@ -39,6 +57,7 @@ func main() {
 			continue
 		}
 
+		//Логика работы в процессе создания заметок
 		switch bot.UserStates[chatID] { // Обращаемся к переменной из bot
 		case "waiting_for_title":
 			bot.UserNotes[chatID] = update.Message.Text
@@ -48,6 +67,7 @@ func main() {
 			title := bot.UserNotes[chatID]
 			text := update.Message.Text
 
+			//Сохраняем заметку в БД
 			bot.AddNote(chatID, title, text)
 
 			log.Printf("Добавлена заметка: Название: %s, Текст: %s", title, text)
