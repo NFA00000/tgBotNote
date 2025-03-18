@@ -11,6 +11,7 @@ import (
 
 func main() {
 
+	//gnhsfbdgfbsebsrnr
 	// Инициализируем базу данных
 	bot.InitDB()
 
