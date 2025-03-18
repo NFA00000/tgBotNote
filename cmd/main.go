@@ -15,7 +15,7 @@ func main() {
 	bot.InitDB()
 
 	// Загружаем переменные окружения
-	err := godotenv.Load()
+	err := godotenv.Load("../.env")
 	if err != nil {
 		log.Fatal("Ошибка загрузки .env файла")
 	}
