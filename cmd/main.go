@@ -50,32 +50,6 @@ func main() {
 			continue
 		}
 
-		chatID := update.Message.Chat.ID
-
-		if update.Message.IsCommand() { // Если это команда — обрабатываем
-			bot.HandleCommand(update, botAPI)
-			continue
-		}
-
-		//Логика работы в процессе создания заметок
-		switch bot.UserStates[chatID] { // Обращаемся к переменной из bot
-		case "waiting_for_title":
-			bot.UserNotes[chatID] = update.Message.Text
-			bot.UserStates[chatID] = "waiting_for_text"
-			bot.SendMessage(botAPI, chatID, "Введи текст заметки")
-		case "waiting_for_text":
-			title := bot.UserNotes[chatID]
-			text := update.Message.Text
-
-			//Сохраняем заметку в БД
-			bot.AddNote(chatID, title, text)
-
-			log.Printf("Добавлена заметка: Название: %s, Текст: %s", title, text)
-
-			delete(bot.UserStates, chatID)
-			delete(bot.UserNotes, chatID)
-
-			bot.SendMessage(botAPI, chatID, "Заметка добавлена")
-		}
+		bot.HandleUpdate(update, botAPI) // Обра��атываем входящее сообщение
 	}
 }
