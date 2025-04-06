@@ -37,3 +37,23 @@ func AddNote(userID int64, title, text string) {
 		log.Fatal("Ошибка добавления заметки: ", err)
 	}
 }
+
+func GetNotesByUserID(userID int64) ([]string, error) {
+	rows, err := DB.Query("SELECT title FROM notes WHERE user_id=?", userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var titles []string
+	for rows.Next() {
+		var title string
+		err = rows.Scan(&title)
+		if err != nil {
+			return nil, err
+		}
+		titles = append(titles, title)
+	}
+
+	return titles, nil
+}

@@ -46,9 +46,26 @@ func HandleCommand(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 		SendMessage(bot, chatID, "Введи название заметки")
 
 		StartTimer(chatID, time.Minute*2, func() {
-			SendMessage(bot, chatID, "Время ожидания истекло.")
+			// SendMessage(bot, chatID, "Время ожидания истекло.")
 			ResetUserStatus(chatID)
 		})
+	case "notes":
+		notes, err := GetNotesByUserID(chatID)
+		if err != nil {
+			SendMessage(bot, chatID, "Щшибка при получении списка заметок")
+			return
+		}
+
+		if len(notes) == 0 {
+			SendMessage(bot, chatID, "У тебя пока нет заметок")
+			return
+		}
+
+		message := "Твои заметки:\n"
+		for _, note := range notes {
+			message += "• " + note + "\n"
+		}
+		SendMessage(bot, chatID, message)
 	default:
 		SendMessage(bot, chatID, "Неизвестная команда. Используй /help.")
 	}
@@ -61,6 +78,13 @@ func HandleUserState(chatID int64, text string, bot *tgbotapi.BotAPI) {
 		UserNotes[chatID] = text
 		UserStates[chatID] = "waiting_for_text"
 		SendMessage(bot, chatID, "Введи текст заметки")
+
+		// // Таймер на ввод текста заметки
+		// StartTimer(chatID, time.Minute*10, func() {
+		// 	SendMessage(bot, chatID, "Время ожидания истекло")
+		// 	ResetUserStatus(chatID)
+		// })
+
 	case "waiting_for_text":
 		title := UserNotes[chatID]
 		noteText := text
