@@ -10,7 +10,6 @@ import (
 
 // Глобальные переменные
 var (
-	UserTimers = make(map[int64]context.CancelFunc) // Хранилище таймеров
 	UserStates = make(map[int64]string)             // Хранит, что ожидает бот от пользователя
 	UserNotes  = make(map[int64]string)             // Временное хранилище названий заметок
 )
@@ -45,10 +44,6 @@ func HandleCommand(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 		UserStates[chatID] = "waiting_for_title"
 		SendMessage(bot, chatID, "Введи название заметки")
 
-		StartTimer(chatID, time.Minute*2, func() {
-			// SendMessage(bot, chatID, "Время ожидания истекло.")
-			ResetUserStatus(chatID)
-		})
 	case "notes":
 		notes, err := GetNotesByUserID(chatID)
 		if err != nil {
@@ -79,12 +74,6 @@ func HandleUserState(chatID int64, text string, bot *tgbotapi.BotAPI) {
 		UserStates[chatID] = "waiting_for_text"
 		SendMessage(bot, chatID, "Введи текст заметки")
 
-		// // Таймер на ввод текста заметки
-		// StartTimer(chatID, time.Minute*10, func() {
-		// 	SendMessage(bot, chatID, "Время ожидания истекло")
-		// 	ResetUserStatus(chatID)
-		// })
-
 	case "waiting_for_text":
 		title := UserNotes[chatID]
 		noteText := text
@@ -108,26 +97,9 @@ func SendMessage(bot *tgbotapi.BotAPI, chatID int64, message string) {
 	}
 }
 
-// Таймер
-func StartTimer(chatID int64, duration time.Duration, onTimeout func()) {
-	if cancel, exists := UserTimers[chatID]; exists {
-		cancel()
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), duration)
-	UserTimers[chatID] = cancel
-
-	go func() {
-		<-ctx.Done()
-		onTimeout()
-		delete(UserTimers, chatID)
-	}()
-}
-
 // Сброс состояния
 func ResetUserStatus(chatID int64) {
 	delete(UserStates, chatID)
 	delete(UserNotes, chatID)
-	delete(UserTimers, chatID)
 	log.Printf("Статус пользователя %d сброшен", chatID)
 }
