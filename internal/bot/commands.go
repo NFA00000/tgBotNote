@@ -1,9 +1,7 @@
 package bot
 
 import (
-	"context"
 	"log"
-	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
